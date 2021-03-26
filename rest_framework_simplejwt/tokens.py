@@ -35,7 +35,8 @@ class Token:
         # Set up token
         if token is not None:
             # An encoded token was provided
-            from .state import token_backend
+            from .state import get_token_backend
+            token_backend = get_token_backend()
 
             # Decode token
             try:
@@ -77,7 +78,8 @@ class Token:
         """
         Signs and returns a token as a base64 encoded string.
         """
-        from .state import token_backend
+        from .state import get_token_backend
+        token_backend = get_token_backend()
 
         return token_backend.encode(self.payload)
 
