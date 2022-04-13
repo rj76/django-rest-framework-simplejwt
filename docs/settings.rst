@@ -11,21 +11,22 @@ Some of Simple JWT's behavior can be customized through settings variables in
   # Django project settings.py
 
   from datetime import timedelta
-
   ...
 
   SIMPLE_JWT = {
       'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
       'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
       'ROTATE_REFRESH_TOKENS': False,
-      'BLACKLIST_AFTER_ROTATION': True,
+      'BLACKLIST_AFTER_ROTATION': False,
       'UPDATE_LAST_LOGIN': False,
 
       'ALGORITHM': 'HS256',
-      'SIGNING_KEY': settings.SECRET_KEY,
+      'SIGNING_KEY': SECRET_KEY,
       'VERIFYING_KEY': None,
       'AUDIENCE': None,
       'ISSUER': None,
+      'JWK_URL': None,
+      'LEEWAY': 0,
 
       'AUTH_HEADER_TYPES': ('Bearer',),
       'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
@@ -35,6 +36,7 @@ Some of Simple JWT's behavior can be customized through settings variables in
 
       'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
       'TOKEN_TYPE_CLAIM': 'token_type',
+      'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
 
       'JTI_CLAIM': 'jti',
 
@@ -146,6 +148,24 @@ The issuer claim to be included in generated tokens and/or validated in decoded
 tokens. When set to ``None``, this field is excluded from tokens and is not
 validated.
 
+``JWK_URL``
+----------
+
+The JWK_URL is used to dynamically resolve the public keys needed to verify the
+signing of tokens. When using Auth0 for example you might set this to
+'https://yourdomain.auth0.com/.well-known/jwks.json'. When set to ``None``,
+this field is excluded from the token backend and is not used during
+validation.
+
+``LEEWAY``
+----------
+
+Leeway is used to give some margin to the expiration time. This can be an
+integer for seconds or a ``datetime.timedelta``. Please reference
+https://pyjwt.readthedocs.io/en/latest/usage.html#expiration-time-claim-exp
+for more information.
+
+
 ``AUTH_HEADER_TYPES``
 ---------------------
 
@@ -214,6 +234,14 @@ The claim name that is used to store a token's unique identifier.  This
 identifier is used to identify revoked tokens in the blacklist app.  It may be
 necessary in some cases to use another claim besides the default "jti" claim to
 store such a value.
+
+``TOKEN_USER_CLASS``
+--------------------
+
+A stateless user object which is backed by a validated token. Used only for
+the JWTStatelessUserAuthentication authentication backend. The value
+is a dotted path to your subclass of ``rest_framework_simplejwt.models.TokenUser``,
+which also is the default.
 
 ``SLIDING_TOKEN_LIFETIME``
 --------------------------
