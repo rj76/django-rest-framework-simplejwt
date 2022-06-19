@@ -1,45 +1,45 @@
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <stephane.maltaesousa@ne.ch>, 2020.
+# FIRST AUTHOR Pasindu <pasinduprabashitha@gmail.com>, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: djangorestframework_simplejwt\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-02-22 17:30+0100\n"
-"Last-Translator: Stéphane Malta e Sousa <stephane.maltaesousa@ne.ch>\n"
-"Language: fr\n"
+"POT-Creation-Date: 2022-05-29 17:30+0100\n"
+"Last-Translator: Pasindu <pasinduprabashitha@gmail.com>\n"
+"Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: authentication.py:78
 msgid "Authorization header must contain two space-delimited values"
 msgstr ""
-"L'en-tête 'Authorization' doit contenir deux valeurs séparées par des espaces"
+"Auktoriseringshuvudet måste innehålla två mellanslagsavgränsade värden"
 
 #: authentication.py:104
 msgid "Given token not valid for any token type"
-msgstr "Le type de jeton fourni n'est pas valide"
+msgstr "Givet token är inte giltigt för någon tokentyp"
 
 #: authentication.py:116 authentication.py:143
 msgid "Token contained no recognizable user identification"
-msgstr ""
-"Le jeton ne contient aucune information permettant d'identifier l'utilisateur"
+msgstr "Token innehöll ingen identifiering av användaren"
 
 #: authentication.py:121
 msgid "User not found"
-msgstr "L'utilisateur n'a pas été trouvé"
+msgstr "Användaren hittades inte"
 
 #: authentication.py:124
 msgid "User is inactive"
-msgstr "L'utilisateur est désactivé"
+msgstr "Användaren är inaktiv"
 
 #: backends.py:67
 msgid "Unrecognized algorithm type '{}'"
-msgstr "Type d'algorithme non reconnu '{}'"
+msgstr "Okänd algoritmtyp '{}'"
 
 #: backends.py:73
 msgid "You must have cryptography installed to use {}."
-msgstr "Vous devez installer cryptography afin d'utiliser {}."
+msgstr "Du måste ha kryptografi installerad för att kunna använda {}."
 
 #: backends.py:88
 msgid ""
@@ -48,23 +48,23 @@ msgstr ""
 
 #: backends.py:147
 msgid "Invalid algorithm specified"
-msgstr "L'algorithme spécifié est invalide"
+msgstr "Ogiltig algoritm har angetts"
 
 #: backends.py:149 exceptions.py:38 tokens.py:44
 msgid "Token is invalid or expired"
-msgstr "Le jeton est invalide ou expiré"
+msgstr "Token är ogiltig eller har löpt ut"
 
 #: serializers.py:30
 msgid "No active account found with the given credentials"
-msgstr "Aucun compte actif n'a été trouvé avec les identifiants fournis"
+msgstr "Inget aktivt konto hittades med de angivna användaruppgifterna"
 
 #: settings.py:70
 msgid ""
 "The '{}' setting has been removed. Please refer to '{}' for available "
 "settings."
 msgstr ""
-"Le paramètre '{}' a été supprimé. Voir '{}' pour la liste des paramètres "
-"disponibles."
+"Inställningen '{}' har tagits bort. Se '{}' för tillgängliga "
+"inställningar"
 
 #: token_blacklist/admin.py:68
 msgid "jti"
@@ -72,44 +72,44 @@ msgstr "jti"
 
 #: token_blacklist/admin.py:74
 msgid "user"
-msgstr "Utilisateur"
+msgstr "användare"
 
 #: token_blacklist/admin.py:80
 msgid "created at"
-msgstr "Créé le"
+msgstr "skapad vid"
 
 #: token_blacklist/admin.py:86
 msgid "expires at"
-msgstr "Expire le"
+msgstr "går ut kl"
 
 #: token_blacklist/apps.py:7
 msgid "Token Blacklist"
-msgstr "Liste des jetons bannis"
+msgstr "Token svartlist"
 
 #: tokens.py:30
 msgid "Cannot create token with no type or lifetime"
-msgstr "Ne peut pas créer de jeton sans type ni durée de vie"
+msgstr "Kan inte skapa token utan typ eller livslängd"
 
 #: tokens.py:102
 msgid "Token has no id"
-msgstr "Le jeton n'a pas d'id"
+msgstr "Token har inget id"
 
 #: tokens.py:115
 msgid "Token has no type"
-msgstr "Le jeton n'a pas de type"
+msgstr "Token har ingen typ"
 
 #: tokens.py:118
 msgid "Token has wrong type"
-msgstr "Le jeton a un type erroné"
+msgstr "Token har fel typ"
 
 #: tokens.py:170
 msgid "Token has no '{}' claim"
-msgstr "Le jeton n'a pas le privilège '{}'"
+msgstr "Token har inget '{}'-anspråk"
 
 #: tokens.py:175
 msgid "Token '{}' claim has expired"
-msgstr "Le privilège '{}' du jeton a expiré"
+msgstr "Token '{}'-anspråket har löpt ut"
 
 #: tokens.py:230
 msgid "Token is blacklisted"
-msgstr "Le jeton a été banni"
+msgstr "Token är svartlistad"
