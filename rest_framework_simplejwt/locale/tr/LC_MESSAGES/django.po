@@ -51,7 +51,7 @@ msgstr ""
 msgid "Invalid algorithm specified"
 msgstr "Geçersiz algoritma belirtildi"
 
-#: backends.py:149 exceptions.py:38 tokens.py:44
+#: backends.py:149 exceptions.py:38 tokens.py:45
 msgid "Token is invalid or expired"
 msgstr "Token geçersiz veya süresi geçmiş"
 
@@ -89,26 +89,26 @@ msgstr "Token Kara Listesi"
 msgid "Cannot create token with no type or lifetime"
 msgstr "Tipi veya geçerlilik süresi olmayan token oluşturulamaz"
 
-#: tokens.py:102
+#: tokens.py:106
 msgid "Token has no id"
 msgstr "Token'in id'si yok"
 
-#: tokens.py:115
+#: tokens.py:119
 msgid "Token has no type"
 msgstr "Token'in tipi yok"
 
-#: tokens.py:118
+#: tokens.py:122
 msgid "Token has wrong type"
 msgstr "Token'in tipi yanlış"
 
-#: tokens.py:170
+#: tokens.py:174
 msgid "Token has no '{}' claim"
 msgstr "Token'in '{}' claim'i yok"
 
-#: tokens.py:175
+#: tokens.py:179
 msgid "Token '{}' claim has expired"
 msgstr "Token'in '{}' claim'i sona erdi"
 
-#: tokens.py:230
+#: tokens.py:234
 msgid "Token is blacklisted"
 msgstr "Token kara listeye alınmış"
