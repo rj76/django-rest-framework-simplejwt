@@ -52,7 +52,7 @@ msgstr ""
 msgid "Invalid algorithm specified"
 msgstr "Вказаний невірний алгоритм"
 
-#: backends.py:149 exceptions.py:38 tokens.py:44
+#: backends.py:149 exceptions.py:38 tokens.py:45
 msgid "Token is invalid or expired"
 msgstr "Токен некоректний або термін його дії вичерпаний"
 
@@ -90,26 +90,26 @@ msgstr "Чорний список токенів"
 msgid "Cannot create token with no type or lifetime"
 msgstr "Неможливо створити токен без типу або строку дії"
 
-#: tokens.py:102
+#: tokens.py:106
 msgid "Token has no id"
 msgstr "У ключі доступу не міститься id"
 
-#: tokens.py:115
+#: tokens.py:119
 msgid "Token has no type"
 msgstr "У ключі доступу не міститься тип"
 
-#: tokens.py:118
+#: tokens.py:122
 msgid "Token has wrong type"
 msgstr "токен позначений невірним типом"
 
-#: tokens.py:170
+#: tokens.py:174
 msgid "Token has no '{}' claim"
 msgstr "У токені не міститься '{}' заголовку"
 
-#: tokens.py:175
+#: tokens.py:179
 msgid "Token '{}' claim has expired"
 msgstr "Заголовок '{}' токена не дійсний"
 
-#: tokens.py:230
+#: tokens.py:234
 msgid "Token is blacklisted"
 msgstr "Токен занесений у чорний список"

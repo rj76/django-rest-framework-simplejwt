@@ -51,7 +51,7 @@ msgstr ""
 msgid "Invalid algorithm specified"
 msgstr "잘못된 알고리즘이 지정되었습니다"
 
-#: backends.py:149 exceptions.py:38 tokens.py:44
+#: backends.py:149 exceptions.py:38 tokens.py:45
 msgid "Token is invalid or expired"
 msgstr "유효하지 않거나 만료된 토큰"
 
@@ -89,26 +89,26 @@ msgstr "토큰 블랙리스트"
 msgid "Cannot create token with no type or lifetime"
 msgstr "타입 또는 수명이 없는 토큰을 생성할 수 없습니다"
 
-#: tokens.py:102
+#: tokens.py:106
 msgid "Token has no id"
 msgstr "토큰에 식별자가 주어지지 않음"
 
-#: tokens.py:115
+#: tokens.py:119
 msgid "Token has no type"
 msgstr "토큰 타입이 주어지지 않음"
 
-#: tokens.py:118
+#: tokens.py:122
 msgid "Token has wrong type"
 msgstr "잘못된 토큰 타입"
 
-#: tokens.py:170
+#: tokens.py:174
 msgid "Token has no '{}' claim"
 msgstr "토큰에 '{}' 클레임이 없음"
 
-#: tokens.py:175
+#: tokens.py:179
 msgid "Token '{}' claim has expired"
 msgstr "토큰 '{}' 클레임이 만료되었습니다"
 
-#: tokens.py:230
+#: tokens.py:234
 msgid "Token is blacklisted"
 msgstr "블랙리스트에 추가된 토큰"

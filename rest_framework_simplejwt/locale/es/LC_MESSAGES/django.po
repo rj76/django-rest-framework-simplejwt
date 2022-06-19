@@ -50,7 +50,7 @@ msgstr ""
 msgid "Invalid algorithm specified"
 msgstr "Algoritmo especificado no válido"
 
-#: backends.py:149 exceptions.py:38 tokens.py:44
+#: backends.py:149 exceptions.py:38 tokens.py:45
 msgid "Token is invalid or expired"
 msgstr "El token es inválido o ha expirado"
 
@@ -90,26 +90,26 @@ msgstr "Lista negra de Tokens"
 msgid "Cannot create token with no type or lifetime"
 msgstr "No se puede crear un token sin tipo o de tan larga vida"
 
-#: tokens.py:102
+#: tokens.py:106
 msgid "Token has no id"
 msgstr "El token no tiene id"
 
-#: tokens.py:115
+#: tokens.py:119
 msgid "Token has no type"
 msgstr "El token no tiene tipo"
 
-#: tokens.py:118
+#: tokens.py:122
 msgid "Token has wrong type"
 msgstr "El token tiene un tipo incorrecto"
 
-#: tokens.py:170
+#: tokens.py:174
 msgid "Token has no '{}' claim"
 msgstr "El token no tiene el privilegio '{}'"
 
-#: tokens.py:175
+#: tokens.py:179
 msgid "Token '{}' claim has expired"
 msgstr "El privilegio '{}' del token ha expirado"
 
-#: tokens.py:230
+#: tokens.py:234
 msgid "Token is blacklisted"
 msgstr "El token está en lista negra"

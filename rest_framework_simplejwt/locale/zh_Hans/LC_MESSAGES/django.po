@@ -52,7 +52,7 @@ msgstr ""
 msgid "Invalid algorithm specified"
 msgstr "指定的算法无效"
 
-#: backends.py:149 exceptions.py:38 tokens.py:44
+#: backends.py:149 exceptions.py:38 tokens.py:45
 msgid "Token is invalid or expired"
 msgstr "令牌无效或已过期"
 
@@ -90,26 +90,26 @@ msgstr "令牌黑名单"
 msgid "Cannot create token with no type or lifetime"
 msgstr "无法创建没有类型或生存期的令牌"
 
-#: tokens.py:102
+#: tokens.py:106
 msgid "Token has no id"
 msgstr "令牌没有标识符"
 
-#: tokens.py:115
+#: tokens.py:119
 msgid "Token has no type"
 msgstr "令牌没有类型"
 
-#: tokens.py:118
+#: tokens.py:122
 msgid "Token has wrong type"
 msgstr "令牌类型错误"
 
-#: tokens.py:170
+#: tokens.py:174
 msgid "Token has no '{}' claim"
 msgstr "令牌没有 '{}' 声明"
 
-#: tokens.py:175
+#: tokens.py:179
 msgid "Token '{}' claim has expired"
 msgstr "令牌 '{}' 声明已过期"
 
-#: tokens.py:230
+#: tokens.py:234
 msgid "Token is blacklisted"
 msgstr "令牌已被加入黑名单"
