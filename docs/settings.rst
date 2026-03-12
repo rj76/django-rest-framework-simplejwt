@@ -14,35 +14,49 @@ Some of Simple JWT's behavior can be customized through settings variables in
   ...
 
   SIMPLE_JWT = {
-      'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
-      'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
-      'ROTATE_REFRESH_TOKENS': False,
-      'BLACKLIST_AFTER_ROTATION': False,
-      'UPDATE_LAST_LOGIN': False,
+      "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+      "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+      "ROTATE_REFRESH_TOKENS": False,
+      "BLACKLIST_AFTER_ROTATION": False,
+      "UPDATE_LAST_LOGIN": False,
 
-      'ALGORITHM': 'HS256',
-      'SIGNING_KEY': SECRET_KEY,
-      'VERIFYING_KEY': None,
-      'AUDIENCE': None,
-      'ISSUER': None,
-      'JWK_URL': None,
-      'LEEWAY': 0,
+      "ALGORITHM": "HS256",
+      "SIGNING_KEY": settings.SECRET_KEY,
+      "VERIFYING_KEY": "",
+      "AUDIENCE": None,
+      "ISSUER": None,
+      "JSON_ENCODER": None,
+      "JWK_URL": None,
+      "LEEWAY": 0,
 
-      'AUTH_HEADER_TYPES': ('Bearer',),
-      'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
-      'USER_ID_FIELD': 'id',
-      'USER_ID_CLAIM': 'user_id',
-      'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+      "AUTH_HEADER_TYPES": ("Bearer",),
+      "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+      "USER_ID_FIELD": "id",
+      "USER_ID_CLAIM": "user_id",
+      "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+      "ON_LOGIN_SUCCESS": "rest_framework_simplejwt.serializers.default_on_login_success",
+      "ON_LOGIN_FAILED": "rest_framework_simplejwt.serializers.default_on_login_failed",
 
-      'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-      'TOKEN_TYPE_CLAIM': 'token_type',
-      'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
+      "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+      "TOKEN_TYPE_CLAIM": "token_type",
+      "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
 
-      'JTI_CLAIM': 'jti',
+      "JTI_CLAIM": "jti", 
 
-      'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
-      'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
-      'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+      "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
+      "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
+      "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
+
+      "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
+      "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
+      "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
+      "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
+      "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
+      "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
+
+      "CHECK_REVOKE_TOKEN": False,
+      "REVOKE_TOKEN_CLAIM": "hash_password",
+      "CHECK_USER_IS_ACTIVE": True,
   }
 
 Above, the default values for these settings are shown.
@@ -149,7 +163,7 @@ tokens. When set to ``None``, this field is excluded from tokens and is not
 validated.
 
 ``JWK_URL``
-----------
+-----------
 
 The JWK_URL is used to dynamically resolve the public keys needed to verify the
 signing of tokens. When using Auth0 for example you might set this to
@@ -165,6 +179,12 @@ integer for seconds or a ``datetime.timedelta``. Please reference
 https://pyjwt.readthedocs.io/en/latest/usage.html#expiration-time-claim-exp
 for more information.
 
+``JSON_ENCODER``
+----------------
+
+A custom JSON encoder class to use when encoding JWT tokens. When set to
+``None``, the default JSON encoder is used. This is useful if you need to
+serialize non-standard types in your token claims.
 
 ``AUTH_HEADER_TYPES``
 ---------------------
@@ -183,7 +203,7 @@ collection will be used to build the "WWW-Authenticate" header in the response.
 The authorization header name to be used for authentication.
 The default is ``HTTP_AUTHORIZATION`` which will accept the
 ``Authorization`` header in the request. For example if you'd
-like to use ``X_Access_Token`` in the header of your requests
+like to use ``X-Access-Token`` in the header of your requests
 please specify the ``AUTH_HEADER_NAME`` to be
 ``HTTP_X_ACCESS_TOKEN`` in your settings.
 
@@ -214,6 +234,20 @@ is applied after a valid token is processed. The user object is passed
 to the callable as an argument. The default rule is to check that the ``is_active``
 flag is still ``True``. The callable must return a boolean, ``True`` if authorized,
 ``False`` otherwise resulting in a 401 status code.
+
+``ON_LOGIN_SUCCESS``
+----------------------------
+
+Callable to add logic whenever a login attempt succeeded. ``UPDATE_LAST_LOGIN``
+must be set to ``True``. The callable does not return anything.
+The default callable updates last_login field in the auth_user table upon login
+(TokenObtainPairView).
+
+``ON_LOGIN_FAILED``
+----------------------------
+
+Callable to add logic whenever a login attempt failed. The callable does not
+return anything. The default callable does nothing (``pass``)
 
 ``AUTH_TOKEN_CLASSES``
 ----------------------
@@ -264,3 +298,67 @@ More about this in the "Sliding tokens" section below.
 
 The claim name that is used to store the expiration time of a sliding token's
 refresh period.  More about this in the "Sliding tokens" section below.
+
+``CHECK_REVOKE_TOKEN``
+----------------------
+
+If this field is set to ``True``, the system will verify whether the token
+has been revoked or not by comparing the md5 hash of the user's current
+password with the value stored in the REVOKE_TOKEN_CLAIM field within the
+payload of the JWT token.
+
+``REVOKE_TOKEN_CLAIM``
+----------------------
+
+The claim name that is used to store a user hash password.
+If the value of this CHECK_REVOKE_TOKEN field is ``True``, this field will be
+included in the JWT payload.
+
+``CHECK_USER_IS_ACTIVE``
+------------------------
+
+When set to ``True`` (the default), the authentication will check if the user's
+``is_active`` flag is ``True``. If the user is inactive (``is_active=False``),
+authentication will fail with a 401 status code. Set this to ``False`` if you
+want to allow inactive users to authenticate with valid tokens.
+
+This setting affects both token authentication via ``JWTAuthentication`` and
+the login validation via ``USER_AUTHENTICATION_RULE``.
+
+``TOKEN_OBTAIN_SERIALIZER``
+---------------------------
+
+A dot path to the serializer class used by ``TokenObtainPairView``.
+This can be customized to include additional claims or modify the
+token generation logic.
+
+``TOKEN_REFRESH_SERIALIZER``
+----------------------------
+
+A dot path to the serializer class used by ``TokenRefreshView``.
+Customize this to modify refresh token handling behavior.
+
+``TOKEN_VERIFY_SERIALIZER``
+---------------------------
+
+A dot path to the serializer class used by ``TokenVerifyView``.
+Customize this to modify token verification behavior.
+
+``TOKEN_BLACKLIST_SERIALIZER``
+------------------------------
+
+A dot path to the serializer class used by ``TokenBlacklistView``.
+Requires the ``rest_framework_simplejwt.token_blacklist`` app to be
+installed.
+
+``SLIDING_TOKEN_OBTAIN_SERIALIZER``
+-----------------------------------
+
+A dot path to the serializer class used by ``TokenObtainSlidingView``.
+For use with sliding tokens feature.
+
+``SLIDING_TOKEN_REFRESH_SERIALIZER``
+------------------------------------
+
+A dot path to the serializer class used by ``TokenRefreshSlidingView``.
+For use with sliding tokens feature.

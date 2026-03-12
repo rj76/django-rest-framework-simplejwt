@@ -1,11 +1,17 @@
 from datetime import datetime, timedelta
+from importlib import reload
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from freezegun import freeze_time
 from jose import jwt
 
-from rest_framework_simplejwt.exceptions import TokenBackendError, TokenError
+from rest_framework_simplejwt.exceptions import (
+    ExpiredTokenError,
+    TokenBackendError,
+    TokenError,
+)
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.state import token_backend
 from rest_framework_simplejwt.tokens import (
@@ -30,6 +36,26 @@ class MyToken(Token):
 class TestToken(TestCase):
     def setUp(self):
         self.token = MyToken()
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.username = "test_user"
+        cls.user = User.objects.create_user(
+            username=cls.username,
+            password="test_password",
+        )
+
+    def test_type_checking(self):
+        from rest_framework_simplejwt import tokens
+
+        with patch("typing.TYPE_CHECKING", True):
+            # Reload tokens, mock type checking
+            reload(tokens)
+
+            self.assertEqual(tokens.TYPE_CHECKING, True)
+
+        # Restore origin module without mock
+        reload(tokens)
 
     def test_init_no_token_type_or_lifetime(self):
         class MyTestToken(Token):
@@ -136,7 +162,7 @@ class TestToken(TestCase):
         t = MyToken()
         t.set_exp(lifetime=-timedelta(seconds=1))
 
-        with self.assertRaises(TokenError):
+        with self.assertRaises(ExpiredTokenError):
             MyToken(str(t))
 
     def test_init_no_type_token_given(self):
@@ -225,14 +251,14 @@ class TestToken(TestCase):
         self.assertIn("jti", token)
         self.assertNotEqual(old_jti, token["jti"])
 
+    @override_api_settings(JTI_CLAIM=None)
     def test_optional_jti(self):
-        with override_api_settings(JTI_CLAIM=None):
-            token = MyToken()
+        token = MyToken()
         self.assertNotIn("jti", token)
 
+    @override_api_settings(TOKEN_TYPE_CLAIM=None)
     def test_optional_type_token(self):
-        with override_api_settings(TOKEN_TYPE_CLAIM=None):
-            token = MyToken()
+        token = MyToken()
         self.assertNotIn("type", token)
 
     def test_set_exp(self):
@@ -355,30 +381,32 @@ class TestToken(TestCase):
         token.token_backend.leeway = 0
 
     def test_for_user(self):
-        username = "test_user"
-        user = User.objects.create_user(
-            username=username,
-            password="test_password",
-        )
+        token = MyToken.for_user(self.user)
 
-        token = MyToken.for_user(user)
-
-        user_id = getattr(user, api_settings.USER_ID_FIELD)
-        if not isinstance(user_id, int):
-            user_id = str(user_id)
+        user_id = getattr(self.user, api_settings.USER_ID_FIELD)
+        user_id = str(user_id)
 
         self.assertEqual(token[api_settings.USER_ID_CLAIM], user_id)
 
+    @override_api_settings(USER_ID_FIELD="username")
+    def test_for_user_with_username(self):
         # Test with non-int user id
-        with override_api_settings(USER_ID_FIELD="username"):
-            token = MyToken.for_user(user)
+        token = MyToken.for_user(self.user)
+        self.assertEqual(token[api_settings.USER_ID_CLAIM], self.username)
 
-        self.assertEqual(token[api_settings.USER_ID_CLAIM], username)
+    @override_api_settings(CHECK_REVOKE_TOKEN=True)
+    def test_revoke_token_claim_included_in_authorization_token(self):
+        token = MyToken.for_user(self.user)
+        self.assertIn(api_settings.REVOKE_TOKEN_CLAIM, token)
 
     def test_get_token_backend(self):
         token = MyToken()
 
         self.assertEqual(token.get_token_backend(), token_backend)
+
+    def test_token_user_id_claim_should_always_be_string(self):
+        token = MyToken.for_user(self.user)
+        self.assertIsInstance(token[api_settings.USER_ID_CLAIM], str)
 
 
 class TestSlidingToken(TestCase):
@@ -410,10 +438,13 @@ class TestRefreshToken(TestCase):
 
     def test_access_token(self):
         # Should create an access token from a refresh token
-        refresh = RefreshToken()
-        refresh["test_claim"] = "arst"
+        with freeze_time("2025-01-01"):
+            refresh = RefreshToken()
+            refresh["test_claim"] = "arst"
 
-        access = refresh.access_token
+        with freeze_time("2025-01-02"):
+            # Ensure iat is different
+            access = refresh.access_token
 
         self.assertIsInstance(access, AccessToken)
         self.assertEqual(access[api_settings.TOKEN_TYPE_CLAIM], "access")

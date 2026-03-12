@@ -3,9 +3,9 @@ import contextlib
 from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 from django.test import TestCase, TransactionTestCase
+from django.urls import reverse
 from rest_framework.test import APIClient
 
-from rest_framework_simplejwt.compat import reverse
 from rest_framework_simplejwt.settings import api_settings
 
 
@@ -62,23 +62,25 @@ def override_api_settings(**settings):
         except AttributeError:
             pass
 
-    yield
+    try:
+        yield
 
-    for k in settings.keys():
-        # Delete temporary settings
-        api_settings.user_settings.pop(k)
+    finally:
+        for k in settings.keys():
+            # Delete temporary settings
+            api_settings.user_settings.pop(k)
 
-        # Restore saved settings
-        try:
-            api_settings.user_settings[k] = old_settings[k]
-        except KeyError:
-            pass
+            # Restore saved settings
+            try:
+                api_settings.user_settings[k] = old_settings[k]
+            except KeyError:
+                pass
 
-        # Delete any cached settings
-        try:
-            delattr(api_settings, k)
-        except AttributeError:
-            pass
+            # Delete any cached settings
+            try:
+                delattr(api_settings, k)
+            except AttributeError:
+                pass
 
 
 class MigrationTestCase(TransactionTestCase):

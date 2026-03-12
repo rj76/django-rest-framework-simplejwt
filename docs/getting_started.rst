@@ -6,9 +6,9 @@ Getting started
 Requirements
 ------------
 
-* Python (3.7, 3.8, 3.9, 3.10)
-* Django (2.2, 3.1, 3.2, 4.0)
-* Django REST Framework (3.10, 3.11, 3.12, 3.13)
+* Python (3.10, 3.11, 3.12, 3.13)
+* Django (4.2, 5.0, 5.1)
+* Django REST Framework (3.14, 3.15)
 
 These are the officially supported python and package versions.  Other versions
 will probably work.  You're free to modify the tox config and see what is
@@ -91,6 +91,9 @@ signing key:
       path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
       ...
   ]
+
+The ``TokenVerifyView`` provides no information about a token's fitness for a particular use,
+it only verifies if a token is valid or not, and return a 200 or 401 status code respectively.
 
 If you wish to use localizations/translations, simply add
 ``rest_framework_simplejwt`` to ``INSTALLED_APPS``.

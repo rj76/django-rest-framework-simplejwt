@@ -1,5 +1,7 @@
+import builtins
 import uuid
 from datetime import datetime, timedelta
+from importlib import reload
 from json import JSONEncoder
 from unittest import mock
 from unittest.mock import patch
@@ -7,16 +9,22 @@ from unittest.mock import patch
 import jwt
 import pytest
 from django.test import TestCase
-from jwt import PyJWS
+from jwt import PyJWS, algorithms
 from jwt import __version__ as jwt_version
-from jwt import algorithms
 
 from rest_framework_simplejwt.backends import JWK_CLIENT_AVAILABLE, TokenBackend
-from rest_framework_simplejwt.exceptions import TokenBackendError
+from rest_framework_simplejwt.exceptions import (
+    TokenBackendError,
+    TokenBackendExpiredToken,
+)
 from rest_framework_simplejwt.utils import aware_utcnow, datetime_to_epoch, make_utc
 from tests.keys import (
     ES256_PRIVATE_KEY,
     ES256_PUBLIC_KEY,
+    ES384_PRIVATE_KEY,
+    ES384_PUBLIC_KEY,
+    ES512_PRIVATE_KEY,
+    ES512_PUBLIC_KEY,
     PRIVATE_KEY,
     PRIVATE_KEY_2,
     PUBLIC_KEY,
@@ -45,6 +53,7 @@ class UUIDJSONEncoder(JSONEncoder):
 
 class TestTokenBackend(TestCase):
     def setUp(self):
+        self.realimport = builtins.__import__
         self.hmac_token_backend = TokenBackend("HS256", SECRET)
         self.hmac_leeway_token_backend = TokenBackend("HS256", SECRET, leeway=LEEWAY)
         self.rsa_token_backend = TokenBackend("RS256", PRIVATE_KEY, PUBLIC_KEY)
@@ -56,8 +65,8 @@ class TestTokenBackend(TestCase):
             self.hmac_token_backend,
             self.rsa_token_backend,
             TokenBackend("ES256", ES256_PRIVATE_KEY, ES256_PUBLIC_KEY),
-            TokenBackend("ES384", ES256_PRIVATE_KEY, ES256_PUBLIC_KEY),
-            TokenBackend("ES512", ES256_PRIVATE_KEY, ES256_PUBLIC_KEY),
+            TokenBackend("ES384", ES384_PRIVATE_KEY, ES384_PUBLIC_KEY),
+            TokenBackend("ES512", ES512_PRIVATE_KEY, ES512_PUBLIC_KEY),
         )
 
     def test_init(self):
@@ -75,6 +84,28 @@ class TestTokenBackend(TestCase):
                 f"You must have cryptography installed to use {algo}.",
             ):
                 TokenBackend(algo, "not_secret")
+
+    def test_jwk_client_not_available(self):
+        from rest_framework_simplejwt import backends
+
+        def myimport(name, globals=None, locals=None, fromlist=(), level=0):
+            if name == "jwt" and fromlist == ("PyJWKClient", "PyJWKClientError"):
+                raise ImportError
+            return self.realimport(name, globals, locals, fromlist, level)
+
+        builtins.__import__ = myimport
+
+        # Reload backends, mock jwk client is not available
+        reload(backends)
+
+        self.assertEqual(backends.JWK_CLIENT_AVAILABLE, False)
+        self.assertEqual(backends.TokenBackend("HS256").jwks_client, None)
+
+        builtins.__import__ = self.realimport
+
+    @patch("jwt.encode", mock.Mock(return_value=b"test"))
+    def test_token_encode_should_return_str_for_old_PyJWT(self):
+        self.assertIsInstance(TokenBackend("HS256").encode({}), str)
 
     def test_encode_hmac(self):
         # Should return a JSON web token for the given payload
@@ -162,12 +193,11 @@ class TestTokenBackend(TestCase):
         self.payload["exp"] = aware_utcnow() - timedelta(seconds=1)
         for backend in self.backends:
             with self.subTest("Test decode with expiry for f{backend.algorithm}"):
-
                 expired_token = jwt.encode(
                     self.payload, backend.signing_key, algorithm=backend.algorithm
                 )
 
-                with self.assertRaises(TokenBackendError):
+                with self.assertRaises(TokenBackendExpiredToken):
                     backend.decode(expired_token)
 
     def test_decode_with_invalid_sig(self):
@@ -228,7 +258,6 @@ class TestTokenBackend(TestCase):
         self.payload["foo"] = "baz"
         for backend in self.backends:
             with self.subTest("Test decode success for f{backend.algorithm}"):
-
                 token = jwt.encode(
                     self.payload, backend.signing_key, algorithm=backend.algorithm
                 )
@@ -276,7 +305,6 @@ class TestTokenBackend(TestCase):
         # Payload copied
         self.payload["exp"] = datetime_to_epoch(self.payload["exp"])
 
-        mock_jwk_module = mock.MagicMock()
         with patch("rest_framework_simplejwt.backends.PyJWKClient") as mock_jwk_module:
             mock_jwk_client = mock.MagicMock()
             mock_signing_key = mock.MagicMock()
@@ -291,6 +319,39 @@ class TestTokenBackend(TestCase):
             )
 
             self.assertEqual(jwk_token_backend.decode(token), self.payload)
+
+    @pytest.mark.skipif(
+        not JWK_CLIENT_AVAILABLE,
+        reason="PyJWT 1.7.1 doesn't have JWK client",
+    )
+    def test_decode_jwk_missing_key_raises_tokenbackenderror(self):
+        self.payload["exp"] = aware_utcnow() + timedelta(days=1)
+        self.payload["foo"] = "baz"
+        self.payload["aud"] = AUDIENCE
+        self.payload["iss"] = ISSUER
+
+        token = jwt.encode(
+            self.payload,
+            PRIVATE_KEY_2,
+            algorithm="RS256",
+            headers={"kid": "230498151c214b788dd97f22b85410a5"},
+        )
+
+        with patch("rest_framework_simplejwt.backends.PyJWKClient") as mock_jwk_module:
+            mock_jwk_client = mock.MagicMock()
+
+            mock_jwk_module.return_value = mock_jwk_client
+            mock_jwk_client.get_signing_key_from_jwt.side_effect = jwt.PyJWKClientError(
+                "Unable to find a signing key that matches"
+            )
+
+            # Note the PRIV,PUB care is intentially the original pairing
+            jwk_token_backend = TokenBackend(
+                "RS256", PRIVATE_KEY, PUBLIC_KEY, AUDIENCE, ISSUER, JWK_URL
+            )
+
+            with self.assertRaisesRegex(TokenBackendError, "Token is invalid"):
+                jwk_token_backend.decode(token)
 
     def test_decode_when_algorithm_not_available(self):
         token = jwt.encode(self.payload, PRIVATE_KEY, algorithm="RS256")

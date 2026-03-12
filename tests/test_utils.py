@@ -1,8 +1,7 @@
-from datetime import datetime, timedelta
-from unittest.mock import patch
+from datetime import datetime, timedelta, timezone
 
 from django.test import TestCase
-from django.utils import timezone
+from freezegun import freeze_time
 
 from rest_framework_simplejwt.utils import (
     aware_utcnow,
@@ -24,26 +23,22 @@ class TestMakeUtc(TestCase):
 
         with self.settings(USE_TZ=False):
             dt = make_utc(dt)
-            self.assertTrue(timezone.is_naive(dt))
+            self.assertTrue(dt.tzinfo is None)
 
         with self.settings(USE_TZ=True):
             dt = make_utc(dt)
-            self.assertTrue(timezone.is_aware(dt))
+            self.assertTrue(dt.tzinfo is not None)
             self.assertEqual(dt.utcoffset(), timedelta(seconds=0))
 
 
 class TestAwareUtcnow(TestCase):
     def test_it_should_return_the_correct_value(self):
-        now = datetime.utcnow()
+        now = datetime.now(tz=timezone.utc).replace(tzinfo=None)
 
-        with patch("rest_framework_simplejwt.utils.datetime") as fake_datetime:
-            fake_datetime.utcnow.return_value = now
-
+        with freeze_time(now):
             # Should return aware utcnow if USE_TZ == True
             with self.settings(USE_TZ=True):
-                self.assertEqual(
-                    timezone.make_aware(now, timezone=timezone.utc), aware_utcnow()
-                )
+                self.assertEqual(now.replace(tzinfo=timezone.utc), aware_utcnow())
 
             # Should return naive utcnow if USE_TZ == False
             with self.settings(USE_TZ=False):

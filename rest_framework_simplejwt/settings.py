@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Any
 
 from django.conf import settings
 from django.test.signals import setting_changed
@@ -28,6 +29,8 @@ DEFAULTS = {
     "USER_ID_FIELD": "id",
     "USER_ID_CLAIM": "user_id",
     "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+    "ON_LOGIN_SUCCESS": "rest_framework_simplejwt.serializers.default_on_login_success",
+    "ON_LOGIN_FAILED": "rest_framework_simplejwt.serializers.default_on_login_failed",
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
     "TOKEN_TYPE_CLAIM": "token_type",
     "JTI_CLAIM": "jti",
@@ -41,6 +44,9 @@ DEFAULTS = {
     "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
     "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
+    "CHECK_REVOKE_TOKEN": False,
+    "REVOKE_TOKEN_CLAIM": "hash_password",
+    "CHECK_USER_IS_ACTIVE": True,
 }
 
 IMPORT_STRINGS = (
@@ -48,6 +54,8 @@ IMPORT_STRINGS = (
     "JSON_ENCODER",
     "TOKEN_USER_CLASS",
     "USER_AUTHENTICATION_RULE",
+    "ON_LOGIN_SUCCESS",
+    "ON_LOGIN_FAILED",
 )
 
 REMOVED_SETTINGS = (
@@ -59,7 +67,7 @@ REMOVED_SETTINGS = (
 
 
 class APISettings(_APISettings):  # pragma: no cover
-    def __check_user_settings(self, user_settings):
+    def __check_user_settings(self, user_settings: dict[str, Any]) -> dict[str, Any]:
         SETTINGS_DOC = "https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html"
 
         for setting in REMOVED_SETTINGS:
@@ -80,7 +88,7 @@ class APISettings(_APISettings):  # pragma: no cover
 api_settings = APISettings(USER_SETTINGS, DEFAULTS, IMPORT_STRINGS)
 
 
-def reload_api_settings(*args, **kwargs):  # pragma: no cover
+def reload_api_settings(*args, **kwargs) -> None:  # pragma: no cover
     global api_settings
 
     setting, value = kwargs["setting"], kwargs["value"]

@@ -1,3 +1,6 @@
+from importlib import reload
+from unittest.mock import patch
+
 from django.test import TestCase
 
 from rest_framework_simplejwt.models import TokenUser
@@ -9,11 +12,23 @@ AuthToken = api_settings.AUTH_TOKEN_CLASSES[0]
 class TestTokenUser(TestCase):
     def setUp(self):
         self.token = AuthToken()
-        self.token[api_settings.USER_ID_CLAIM] = 42
+        self.token[api_settings.USER_ID_CLAIM] = "42"
         self.token["username"] = "deep-thought"
         self.token["some_other_stuff"] = "arstarst"
 
         self.user = TokenUser(self.token)
+
+    def test_type_checking(self):
+        from rest_framework_simplejwt import models
+
+        with patch("typing.TYPE_CHECKING", True):
+            # Reload models, mock type checking
+            reload(models)
+
+            self.assertEqual(models.TYPE_CHECKING, True)
+
+        # Restore origin module without mock
+        reload(models)
 
     def test_username(self):
         self.assertEqual(self.user.username, "deep-thought")
@@ -25,13 +40,13 @@ class TestTokenUser(TestCase):
         self.assertEqual(str(self.user), "TokenUser 42")
 
     def test_id(self):
-        self.assertEqual(self.user.id, 42)
+        self.assertEqual(self.user.id, "42")
 
     def test_pk(self):
-        self.assertEqual(self.user.pk, 42)
+        self.assertEqual(self.user.pk, "42")
 
     def test_is_staff(self):
-        payload = {api_settings.USER_ID_CLAIM: 42}
+        payload = {api_settings.USER_ID_CLAIM: "42"}
         user = TokenUser(payload)
 
         self.assertFalse(user.is_staff)
@@ -42,7 +57,7 @@ class TestTokenUser(TestCase):
         self.assertTrue(user.is_staff)
 
     def test_is_superuser(self):
-        payload = {api_settings.USER_ID_CLAIM: 42}
+        payload = {api_settings.USER_ID_CLAIM: "42"}
         user = TokenUser(payload)
 
         self.assertFalse(user.is_superuser)
@@ -53,12 +68,18 @@ class TestTokenUser(TestCase):
         self.assertTrue(user.is_superuser)
 
     def test_eq(self):
-        user1 = TokenUser({api_settings.USER_ID_CLAIM: 1})
-        user2 = TokenUser({api_settings.USER_ID_CLAIM: 2})
-        user3 = TokenUser({api_settings.USER_ID_CLAIM: 1})
+        user1 = TokenUser({api_settings.USER_ID_CLAIM: "1"})
+        user2 = TokenUser({api_settings.USER_ID_CLAIM: "2"})
+        user3 = TokenUser({api_settings.USER_ID_CLAIM: "1"})
 
         self.assertNotEqual(user1, user2)
         self.assertEqual(user1, user3)
+
+    def test_eq_not_implemented(self):
+        user1 = TokenUser({api_settings.USER_ID_CLAIM: "1"})
+        user2 = "user2"
+
+        self.assertFalse(user1 == user2)
 
     def test_hash(self):
         self.assertEqual(hash(self.user), hash(self.user.id))
@@ -105,3 +126,6 @@ class TestTokenUser(TestCase):
 
     def test_get_username(self):
         self.assertEqual(self.user.get_username(), "deep-thought")
+
+    def test_get_custom_claims_through_backup_getattr(self):
+        self.assertEqual(self.user.some_other_stuff, "arstarst")

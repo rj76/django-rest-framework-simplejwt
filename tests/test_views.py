@@ -1,5 +1,5 @@
 from datetime import timedelta
-from importlib import reload
+from unittest import mock
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -93,20 +93,37 @@ class TestTokenObtainPairView(APIViewTestCase):
         user = User.objects.get(username=self.username)
         self.assertEqual(user.last_login, None)
 
+    @override_api_settings(UPDATE_LAST_LOGIN=True)
+    def test_update_last_login_updated(self):
         # verify last_login is updated
-        with override_api_settings(UPDATE_LAST_LOGIN=True):
-            reload(serializers)
-            self.view_post(
-                data={
-                    User.USERNAME_FIELD: self.username,
-                    "password": self.password,
-                }
-            )
-            user = User.objects.get(username=self.username)
-            self.assertIsNotNone(user.last_login)
-            self.assertGreaterEqual(timezone.now(), user.last_login)
+        self.view_post(
+            data={
+                User.USERNAME_FIELD: self.username,
+                "password": self.password,
+            }
+        )
+        user = User.objects.get(username=self.username)
+        self.assertIsNotNone(user.last_login)
+        self.assertGreaterEqual(timezone.now(), user.last_login)
 
-        reload(serializers)
+    def test_on_login_failed_is_called(self):
+        # Patch the ON_LOGIN_FAILED setting
+        with mock.patch(
+            "rest_framework_simplejwt.settings.api_settings.ON_LOGIN_FAILED"
+        ) as mocked_hook:
+            self.test_credentials_wrong()
+            mocked_hook.assert_called_once()
+
+            # Optional: check exact arguments
+            args, kwargs = mocked_hook.call_args
+            credentials, request = args
+            self.assertEqual(
+                credentials,
+                {
+                    User.USERNAME_FIELD: self.username,
+                    "password": "********************",
+                },
+            )
 
 
 class TestTokenRefreshView(APIViewTestCase):
@@ -233,20 +250,18 @@ class TestTokenObtainSlidingView(APIViewTestCase):
         user = User.objects.get(username=self.username)
         self.assertEqual(user.last_login, None)
 
+    @override_api_settings(UPDATE_LAST_LOGIN=True)
+    def test_update_last_login_updated(self):
         # verify last_login is updated
-        with override_api_settings(UPDATE_LAST_LOGIN=True):
-            reload(serializers)
-            self.view_post(
-                data={
-                    User.USERNAME_FIELD: self.username,
-                    "password": self.password,
-                }
-            )
-            user = User.objects.get(username=self.username)
-            self.assertIsNotNone(user.last_login)
-            self.assertGreaterEqual(timezone.now(), user.last_login)
-
-        reload(serializers)
+        self.view_post(
+            data={
+                User.USERNAME_FIELD: self.username,
+                "password": self.password,
+            }
+        )
+        user = User.objects.get(username=self.username)
+        self.assertIsNotNone(user.last_login)
+        self.assertGreaterEqual(timezone.now(), user.last_login)
 
 
 class TestTokenRefreshSlidingView(APIViewTestCase):
@@ -445,3 +460,16 @@ class TestCustomTokenView(APIViewTestCase):
         request = factory.post("/", {}, format="json")
         res = view(request)
         self.assertEqual(res.status_code, 400)
+
+
+class TestTokenViewBase(APIViewTestCase):
+    def test_serializer_class_not_set_in_settings_and_class_attribute_or_wrong_path(
+        self,
+    ):
+        view = TokenViewBase()
+        msg = "Could not import serializer '%s'" % view._serializer_class
+
+        with self.assertRaises(ImportError) as e:
+            view.get_serializer_class()
+
+            self.assertEqual(e.exception.msg, msg)
